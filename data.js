@@ -237,10 +237,11 @@ function sellItem(itemId, winnerName, price) {
 
   // 没有 A2 玩家, 直接成交 (但要看 A3 链: 如果成交者是 A3 拥有者, 靠山分担 10%)
   let a3Backer = null; // { ownerName, backerName, payerPays, backerLoses }
+  let a3BackerPlayer = null; // 提到外层, 后面要用
   if (state.a3Chains[winnerName]) {
     const backerName = state.a3Chains[winnerName];
-    const backer = state.players.find(p => p.name === backerName);
-    if (backer) {
+    a3BackerPlayer = state.players.find(p => p.name === backerName);
+    if (a3BackerPlayer) {
       const discount = Math.floor(price * 0.1); // 10% 金额
       a3Backer = { ownerName: winnerName, backerName, payerPays: price - discount, backerLoses: discount };
     }
@@ -249,9 +250,9 @@ function sellItem(itemId, winnerName, price) {
   if (a3Backer) {
     // 护身符: 拥有者实付 90%, 靠山当场扣 10%
     if (winner.gold < a3Backer.payerPays) throw new Error(`玩家余额不足 (含 A3 靠山优惠后实付 ${a3Backer.payerPays} 元)`);
-    if (backer.gold < a3Backer.backerLoses) throw new Error(`靠山 ${a3Backer.backerName} 余额不足 (需扣 ${a3Backer.backerLoses} 元)`);
+    if (a3BackerPlayer.gold < a3Backer.backerLoses) throw new Error(`靠山 ${a3Backer.backerName} 余额不足 (需扣 ${a3Backer.backerLoses} 元)`);
     winner.gold -= a3Backer.payerPays;
-    backer.gold -= a3Backer.backerLoses;
+    a3BackerPlayer.gold -= a3Backer.backerLoses;
     // 记录到 log
     state.log.push({
       type: 'a3_split', owner: winnerName, backer: a3Backer.backerName,
