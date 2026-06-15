@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🎯 A5 选牌官 · 私密选卡</title>
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div id="root"></div>
+<script crossorigin src="./lib/react.production.min.js"></script>
+<script crossorigin src="./lib/react-dom.production.min.js"></script>
+<script crossorigin src="./lib/babel.min.js"></script>
+<script src="./data.js"></script>
+<script>
+window.__err = [];
+window.addEventListener('error', e => {
+  window.__err.push('ERROR: ' + (e.message || e) + ' at ' + (e.filename || '') + ':' + (e.lineno || ''));
+  document.body.innerHTML = '<pre style="color:red;background:white;padding:20px;">' + window.__err.join('\n') + '</pre>';
+});
+const _err = console.error;
+console.error = function(...args) {
+  window.__err.push('console.error: ' + args.map(a => typeof a === 'string' ? a : JSON.stringify(a)).join(' '));
+  document.body.innerHTML = '<pre style="color:red;background:white;padding:20px;font-size:11px;">' + window.__err.join('\n') + '</pre>';
+  _err.apply(console, args);
+};
+window.addEventListener('unhandledrejection', e => {
+  window.__err.push('PROMISE: ' + (e.reason && e.reason.message ? e.reason.message : e.reason));
+  document.body.innerHTML = '<pre style="color:red;background:white;padding:20px;font-size:11px;">' + window.__err.join('\n') + '</pre>';
+});
+</script>
+<script type="text/babel" data-presets="react" src="./select.jsx"></script>
+</body>
+</html>

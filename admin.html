@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>主持人中控</title>
+<link rel="stylesheet" href="./style.css">
+<!-- 预加载人格卡+卡背(中控预览用) -->
+<link rel="preload" as="image" href="./cards-back/card-back.png">
+<link rel="preload" as="image" href="./cards-front/01-卷王型.png">
+<link rel="preload" as="image" href="./cards-front/02-佛系型.png">
+<link rel="preload" as="image" href="./cards-front/03-PPT美学派.png">
+<link rel="preload" as="image" href="./cards-front/04-文献考古学家.png">
+<link rel="preload" as="image" href="./cards-front/05-组会汇报演技派.png">
+<link rel="preload" as="image" href="./cards-front/06-图书馆气氛组.png">
+<link rel="preload" as="image" href="./cards-front/07-凌晨四点还在调问卷.png">
+<link rel="preload" as="image" href="./cards-front/08-数据焦虑晚期.png">
+<link rel="preload" as="image" href="./cards-front/09-被试招募困难户.png">
+<link rel="preload" as="image" href="./cards-front/10-DDL战士.png">
+<link rel="preload" as="image" href="./cards-front/11-零食补给站.png">
+<link rel="preload" as="image" href="./cards-front/12-设备氪金党.png">
+<link rel="preload" as="image" href="./cards-front/13-咖啡因成瘾者.png">
+</head>
+<body>
+<div id="root"></div>
+<script crossorigin src="./lib/react.production.min.js"></script>
+<script crossorigin src="./lib/react-dom.production.min.js"></script>
+<script crossorigin src="./lib/babel.min.js"></script>
+<script src="./data.js"></script>
+<script>
+window.__err = [];
+window.addEventListener('error', e => {
+  window.__err.push('ERROR: ' + (e.message || e) + ' at ' + (e.filename || '') + ':' + (e.lineno || ''));
+  document.body.innerHTML = '<pre style="color:red;background:white;padding:20px;">' + window.__err.join('\n') + '</pre>';
+});
+const _err = console.error;
+console.error = function(...args) {
+  window.__err.push('console.error: ' + args.map(a => typeof a === 'string' ? a : JSON.stringify(a)).join(' '));
+  document.body.innerHTML = '<pre style="color:red;background:white;padding:20px;font-size:11px;">' + window.__err.join('\n') + '</pre>';
+  _err.apply(console, args);
+};
+window.addEventListener('unhandledrejection', e => {
+  window.__err.push('PROMISE: ' + (e.reason && e.reason.message ? e.reason.message : e.reason));
+  document.body.innerHTML = '<pre style="color:red;background:white;padding:20px;font-size:11px;">' + window.__err.join('\n') + '</pre>';
+});
+</script>
+<script type="text/babel" data-presets="react" src="./app.jsx"></script>
+</body>
+</html>
