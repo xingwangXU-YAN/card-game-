@@ -268,6 +268,28 @@ function getPlayer(name) {
   return getState().players.find(p => p.name === name) || null;
 }
 
+// 房间模式：从 D1 异步查玩家（玩家端用）
+async function getPlayerRoom(name) {
+  if (!getRoomId()) return null;
+  try {
+    const room = getRoomId();
+    const r = await fetch('/api/player?room=' + encodeURIComponent(room) + '&name=' + encodeURIComponent(name));
+    if (!r.ok) return null;
+    const data = await r.json();
+    if (!data.found) return null;
+    // 同步本地缓存
+    const localState = getState();
+    const idx = localState.players.findIndex(p => p.name === name);
+    if (idx >= 0) localState.players[idx] = data.player;
+    else localState.players.push(data.player);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(localState));
+    return data.player;
+  } catch (e) {
+    console.error('getPlayerRoom failed:', e);
+    return null;
+  }
+}
+
 // 中控手动加减金币 (兜底: 出现意外时手动调整)
 function adjustGold(playerName, delta) {
   const state = getState();

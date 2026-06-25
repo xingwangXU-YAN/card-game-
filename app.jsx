@@ -837,10 +837,29 @@ function Player() {
     if (player) setMockery(player.selfMockery || card?.selfMockery || '');
   }, [player?.name, player?.selfMockery]);
 
-  const login = () => {
+  // 房间模式：从 D1 拉玩家（异步）
+  useEffect(() => {
+    if (USE_ROOM && name && typeof getPlayerRoom === 'function') {
+      getPlayerRoom(name).then(p => {
+        if (p) {
+          setMockery(p.selfMockery || '');
+          // 触发刷新（让 player 从缓存里重新读）
+          window.dispatchEvent(new Event('card-game-update'));
+        }
+      });
+    }
+  }, [name, state.updatedAt]);
+
+  const login = async () => {
     const n = inputName.trim();
     if (!n) return setError('请输入姓名');
-    if (!getPlayer(n)) return setError('找不到你的抽卡记录, 请确认姓名, 或先到大屏抽卡');
+    // 房间模式：从 D1 查
+    if (USE_ROOM && typeof getPlayerRoom === 'function') {
+      const p = await getPlayerRoom(n);
+      if (!p) return setError('找不到你的抽卡记录, 请确认姓名, 或先到大屏抽卡');
+    } else {
+      if (!getPlayer(n)) return setError('找不到你的抽卡记录, 请确认姓名, 或先到大屏抽卡');
+    }
     setName(n); localStorage.setItem(PLAYER_NAME_KEY, n); setError('');
   };
   const logout = () => {
