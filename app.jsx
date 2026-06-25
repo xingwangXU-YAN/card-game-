@@ -30,7 +30,10 @@ function useTick() {
   useEffect(() => {
     if (USE_ROOM && typeof subscribeRoom === 'function') {
       return subscribeRoom((newState) => {
-        setRoomState(newState);  // 直接更新 React 持有的 state
+        // 关键：把 D1 拉来的新 state 同步到 localStorage，
+        // 这样 drawCard / useItem 等调 getState() 时能看到最新值
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(newState)); } catch (e) {}
+        setRoomState(newState);
         setTick(t => t + 1);
       });
     }
