@@ -1,13 +1,14 @@
 // 一次性建表端点（GET 调用即可，幂等）
 export async function onRequestGet(context) {
   try {
-    await context.env.DB.exec(
+    // D1 不支持 exec() 跑多语句，用 prepare().run() 单条跑
+    await context.env.DB.prepare(
       `CREATE TABLE IF NOT EXISTS rooms (
         room_id TEXT PRIMARY KEY,
         state_json TEXT NOT NULL,
         updated_at INTEGER NOT NULL
       )`
-    );
+    ).run();
     return new Response(JSON.stringify({ ok: true, message: 'rooms table ready' }), {
       headers: { 'Content-Type': 'application/json' },
     });
