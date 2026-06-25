@@ -100,12 +100,29 @@ function defaultState() {
 }
 
 function getState() {
+  // 房间模式下：localStorage 是兜底缓存（D1 是 source of truth）
+  // 但 getState 是同步 API，所以这里直接返回本地缓存；
+  // subscribeRoom 每 2 秒从 D1 拉真值并触发 React 刷新。
   const raw = localStorage.getItem(STORAGE_KEY);
   if (!raw) return defaultState();
   try { return JSON.parse(raw); } catch { return defaultState(); }
 }
 
 function setState(state) {
+  // 房间模式：写 D1（不写 localStorage，避免本地与远端错乱）
+  if (typeof getRoomId === 'function' && getRoomId()) {
+    // 异步写 D1；不阻塞原同步调用
+    if (typeof setRoomState === 'function') {
+      setRoomState(state).then(ok => {
+        if (ok) window.dispatchEvent(new Event('card-game-update'));
+      });
+    }
+    // 同时保留本地一份（兜底 + 让 useTick 立刻拿到新值）
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    window.dispatchEvent(new Event('card-game-update'));
+    return;
+  }
+  // 单机模式：原行为
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   window.dispatchEvent(new Event('card-game-update'));
 }
@@ -122,6 +139,95 @@ function subscribe(callback) {
 
 function resetGame() {
   setState(defaultState());
+}
+
+// ============== 跨设备同步（D1 房间模式） ==============
+// 房间号从 URL ?room=xxx 读，fallback 到 localStorage
+const ROOM_STORAGE_KEY = 'card-game-room';
+
+function getRoomId() {
+  try {
+    const params = new URLSearchParams(location.search);
+    const fromUrl = params.get('room');
+    if (fromUrl) {
+      localStorage.setItem(ROOM_STORAGE_KEY, fromUrl);
+      return fromUrl;
+    }
+  } catch (e) {}
+  return localStorage.getItem(ROOM_STORAGE_KEY) || '';
+}
+
+function setRoomId(room) {
+  localStorage.setItem(ROOM_STORAGE_KEY, room);
+  try {
+    const url = new URL(location.href);
+    url.searchParams.set('room', room);
+    history.replaceState(null, '', url);
+  } catch (e) {}
+}
+
+// 房间模式下的 getState：从 D1 拉（异步）
+async function getRoomState() {
+  const room = getRoomId();
+  if (!room) return null;
+  try {
+    const r = await fetch('/api/state?room=' + encodeURIComponent(room));
+    if (!r.ok) return null;
+    const data = await r.json();
+    return data.state || null;
+  } catch (e) {
+    console.error('getRoomState failed:', e);
+    return null;
+  }
+}
+
+// 房间模式下的 setState：写到 D1（异步）
+async function setRoomState(state) {
+  const room = getRoomId();
+  if (!room) return false;
+  try {
+    state.updatedAt = Date.now();
+    const r = await fetch('/api/state', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ room, state }),
+    });
+    return r.ok;
+  } catch (e) {
+    console.error('setRoomState failed:', e);
+    return false;
+  }
+}
+
+// 房间模式下的 subscribe：每 2 秒轮询 + 页面不可见时暂停
+function subscribeRoom(callback) {
+  let interval = null;
+  let lastUpdatedAt = 0;
+
+  const tick = async () => {
+    const state = await getRoomState();
+    if (state && state.updatedAt !== lastUpdatedAt) {
+      lastUpdatedAt = state.updatedAt || 0;
+      callback(state);
+    }
+  };
+
+  const start = () => {
+    if (interval) return;
+    tick();
+    interval = setInterval(tick, 2000);
+  };
+  const stop = () => {
+    if (interval) { clearInterval(interval); interval = null; }
+  };
+
+  // visibility API：页面不可见时停止轮询，省 D1 配额
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) stop(); else start();
+  });
+
+  start();
+  return stop;
 }
 
 // ============== 抽卡 ==============

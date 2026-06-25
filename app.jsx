@@ -2,10 +2,33 @@
 const { useState, useEffect, useMemo, useCallback } = React;
 const { createRoot } = ReactDOM;
 
+// 房间模式标记（app.jsx 启动时确定一次）
+const USE_ROOM = !!(typeof getRoomId === 'function' && getRoomId());
+
 function useTick() {
   const [, setTick] = useState(0);
-  useEffect(() => subscribe(() => setTick(t => t + 1)), []);
+  useEffect(() => {
+    if (USE_ROOM && typeof subscribeRoom === 'function') {
+      return subscribeRoom(() => setTick(t => t + 1));
+    }
+    return subscribe(() => setTick(t => t + 1));
+  }, []);
+  // 房间模式下，返回的是上次缓存的 localStorage state；
+  // 真实 state 由 tick 触发后从 subscribeRoom 内部异步更新。
+  // 非房间模式维持原行为。
   return getState();
+}
+
+// 房间模式下的 setState 包装：写完 D1 后立即触发 React 刷新
+async function commitState(nextState) {
+  if (USE_ROOM && typeof setRoomState === 'function') {
+    await setRoomState(nextState);
+    // 同步本地缓存，避免 useTick 短暂返回旧值
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(nextState));
+    window.dispatchEvent(new Event('card-game-update'));
+  } else {
+    setState(nextState);
+  }
 }
 
 function useEscape(handler) {
@@ -518,7 +541,7 @@ function Admin() {
       setUseResult(result);
     } catch (e) { setUse(s => ({ ...s, err: e.message })); }
   };
-  const switchPhase = p => { const s = getState(); s.phase = p; setState(s); };
+  const switchPhase = p => { const s = getState(); s.phase = p; commitState(s); };
   const reset = () => { if (confirm('重置？所有玩家+拍品数据清空,卡池恢复 16 张。')) resetGame(); };
 
   return (
