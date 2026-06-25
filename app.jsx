@@ -832,7 +832,7 @@ function Player() {
   };
 
   if (!name) return <PlayerLogin inputName={inputName} setInputName={setInputName} error={error} onLogin={login} />;
-  if (!player) return <PlayerNotFound name={name} />;
+  if (!player) return <PlayerNotFound name={name} onBack={() => { localStorage.removeItem(PLAYER_NAME_KEY); setName(''); setInputName(''); setError(''); setMockery(''); }} />;
 
   return (
     <div className="player">
@@ -933,7 +933,7 @@ function PlayerLogin({ inputName, setInputName, error, onLogin }) {
   );
 }
 
-function PlayerNotFound({ name }) {
+function PlayerNotFound({ name, onBack }) {
   return (
     <div className="player">
       <div className="player-login">
@@ -943,6 +943,9 @@ function PlayerNotFound({ name }) {
           还没找到你的抽卡记录<br />
           <span style={{ fontSize: 13 }}>请先在主持人大屏输入 "{name}" 抽卡</span>
         </div>
+        <button onClick={onBack} className="btn-secondary" style={{ marginTop: 20 }}>
+          ← 返回重新输入姓名
+        </button>
       </div>
     </div>
   );
