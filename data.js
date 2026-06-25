@@ -202,12 +202,12 @@ async function setRoomState(state) {
 // 房间模式下的 subscribe：每 2 秒轮询 + 页面不可见时暂停
 function subscribeRoom(callback) {
   let interval = null;
-  let lastUpdatedAt = 0;
 
   const tick = async () => {
     const state = await getRoomState();
-    if (state && state.updatedAt !== lastUpdatedAt) {
-      lastUpdatedAt = state.updatedAt || 0;
+    if (state) {
+      // 每次 tick 都触发 callback（让 React 重新渲染），
+      // 即使 state 引用没变（updatedAt 比较会有 race condition）
       callback(state);
     }
   };

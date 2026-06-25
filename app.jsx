@@ -26,15 +26,18 @@ if (USE_ROOM) {
 
 function useTick() {
   const [, setTick] = useState(0);
+  const [roomState, setRoomState] = useState(getState());
   useEffect(() => {
     if (USE_ROOM && typeof subscribeRoom === 'function') {
-      return subscribeRoom(() => setTick(t => t + 1));
+      return subscribeRoom((newState) => {
+        setRoomState(newState);  // 直接更新 React 持有的 state
+        setTick(t => t + 1);
+      });
     }
     return subscribe(() => setTick(t => t + 1));
   }, []);
-  // 房间模式下，返回的是上次缓存的 localStorage state；
-  // 真实 state 由 tick 触发后从 subscribeRoom 内部异步更新。
-  // 非房间模式维持原行为。
+  // 房间模式下返回 D1 拉来的真 state；非房间模式返回 localStorage state
+  if (USE_ROOM) return roomState;
   return getState();
 }
 
