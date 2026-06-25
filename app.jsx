@@ -519,7 +519,7 @@ function Admin() {
     } catch (e) { setUse(s => ({ ...s, err: e.message })); }
   };
   const switchPhase = p => { const s = getState(); s.phase = p; setState(s); };
-  const reset = () => { if (confirm('重置？所有玩家+拍品数据清空,卡池恢复 13 张。')) resetGame(); };
+  const reset = () => { if (confirm('重置？所有玩家+拍品数据清空,卡池恢复 16 张。')) resetGame(); };
 
   return (
     <div className="admin">

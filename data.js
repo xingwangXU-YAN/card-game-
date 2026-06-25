@@ -1,4 +1,4 @@
-// ============== 人格卡（13 张·抽卡用） ==============
+// ============== 人格卡（16 张·抽卡用） ==============
 const CARDS = [
   { id: 1, name: '卷王型', gold: 1500, selfMockery: '我卷我自己,今天又被自己卷到了', image: './cards-front/01-卷王型.png' },
   { id: 2, name: '佛系型', gold: 300, selfMockery: '能拖就拖,拖不动就躺', image: './cards-front/02-佛系型.png' },
@@ -13,6 +13,9 @@ const CARDS = [
   { id: 11, name: '零食补给站', gold: 500, selfMockery: '我的工位零食养活整个教研室', image: './cards-front/11-零食补给站.png' },
   { id: 12, name: '设备氪金党', gold: 800, selfMockery: '设备比我的论文贵多了', image: './cards-front/12-设备氪金党.png' },
   { id: 13, name: '咖啡因成瘾者', gold: 500, selfMockery: '今天又是靠咖啡续命的一天', image: './cards-front/13-咖啡因成瘾者.png' },
+  { id: 14, name: '摸鱼成仙型', gold: 600, selfMockery: '导师以为我在写论文，其实在思考人生', image: './cards-front/14-摸鱼成仙型.png' },
+  { id: 15, name: '答辩PTSD', gold: 1000, selfMockery: '梦里评委还在追问\'请再讲一下你的创新点\'', image: './cards-front/15-答辩PTSD.png' },
+  { id: 16, name: '实验翻车型', gold: 800, selfMockery: '我做的不是实验，是大型行为艺术', image: './cards-front/16-实验翻车型.png' },
 ];
 
 // ============== 拍品（12 张） ==============
