@@ -5,6 +5,25 @@ const { createRoot } = ReactDOM;
 // 房间模式标记（app.jsx 启动时确定一次）
 const USE_ROOM = !!(typeof getRoomId === 'function' && getRoomId());
 
+// 调试条：房间模式下，左下角显示当前 room_id 和最近一次 API 状态
+if (USE_ROOM) {
+  setTimeout(() => {
+    let dbg = document.getElementById('__room_debug');
+    if (!dbg) {
+      dbg = document.createElement('div');
+      dbg.id = '__room_debug';
+      dbg.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:9999;background:rgba(0,0,0,.75);color:#fff;font:11px/1.4 monospace;padding:6px 8px;border-radius:4px;max-width:60vw;pointer-events:none;';
+      document.body.appendChild(dbg);
+    }
+    const upd = () => {
+      const r = (typeof getRoomId === 'function') ? getRoomId() : '?';
+      dbg.textContent = '🏠 room=' + r + '  USE_ROOM=' + USE_ROOM;
+    };
+    upd();
+    setInterval(upd, 2000);
+  }, 200);
+}
+
 function useTick() {
   const [, setTick] = useState(0);
   useEffect(() => {
